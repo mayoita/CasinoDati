@@ -45,6 +45,7 @@
   </div>
    <script>    
 
+      var Veneto = [provVE, provTV, provPD, provVR, provVI, provBL, provRO];
       Number.prototype.toRad = function() {
          return this * Math.PI / 180;
       }
@@ -110,18 +111,22 @@
         var mainText = document.getElementById("mainText");
 
         var totale = 0;
-
-         for (var city in provVE) {
+        var arrayLength = Veneto.length;
+        for (var i=0; i < arrayLength; i++) {
+          var comune = Veneto[i];
+         for (var city in comune) {
           // Add the circle for this city to the map.
-          var b = provVE[city].center;
+          var b = comune[city].center;
           var a = new google.maps.LatLng(parseFloat(b.lat), parseFloat(b.lng));
 
           if (google.maps.geometry.spherical.computeDistanceBetween(a, circleS.getCenter()) <= (circleS.getRadius())) {
                 console.log(city + '=> is in searchArea');
-                totale = totale + Number(provVE[city].population);
+                totale = totale + Number(comune[city].population);
             } 
-        }   
+          }  
+        } 
         var contentString = '<b>Totale</b><br>' +
+        'Raggio: ' + Math.round(circleS.getRadius())/1000 + '<br>' +
             'Ingressi: ' + totale;
 
         // Set the info window's content and position.
