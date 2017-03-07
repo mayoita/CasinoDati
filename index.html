@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfL1j_9u08QuliNtt-zij9zc8htgwtvpY"></script>
-<!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+<!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="css/dati.css">
+  </head>
 </head>
 <body>
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
+
+
 <script src="js/data.js"></script>
+<script src="js/regioni.geojson"></script>
 <div><wpt lat="45.442989" lon="12.329876"></div>
 
 
@@ -29,23 +30,68 @@
           <div class="input-group">
             <span class="input-group-addon">Km</span>
             <input type="number" class="form-control" placeholder="Km..." id="mainText" onchange="play()" value="10">
-            <span class="input-group-btn">
-              <button class="btn btn-secondary" type="button" onclick="hideFour()">Singolo</button>
-              <button class="btn btn-secondary" type="button" onclick="hideSingle()">Multiplo</button>
-            </span>
+            <button class="btn btn-primary" type="button" onclick="hideFour()">SINGOLO</button>
+            <button class="btn btn-primary" type="button" onclick="hideSingle()">MULTIPLO</button>
           </div>
       </div>
       <div class="col-md-9">
-        <input type="number" ></input>
-        <button id="submitBtn" onclick="submitClick()"><i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+        
       </div>
+       <div class="list-group">
+        <div class="Titolo">TOTALI PER TIPOLOGIA</div>
+        <div class="TotaleRegione">Totale Regione: </div>
+        <div class="Raggio">Raggio: </div>
+        <div class="TipoContainer">
+          <span class="Tipo">TIPO</span>
+          <span class="TipoTot">Tot.</span>
+          <span class="TipoPer">%</span>
+        </div>
+     </div>
+    </div>
+    <div class="row" style="height:94%">
       <div class="col-md-12" id="maptest" style="width:100%;height:100%;"></div>
     </div>
     
   </div>
    <script>    
+    var RegioneSelezionata = false;
+    var uniqueNames = [];
+    var LastRegion;
+    var TotaleRegione=0;
+    var REGIONE;
+    function ElaboraLegenda () {
+    $.each(REGIONE, function(i, el){
+      TotaleRegione = TotaleRegione + Number(REGIONE[i][2]);
+       if($.inArray(el[3], uniqueNames) === -1){
+        uniqueNames.push(el[3]);
+        $( ".list-group" ).append( "<div class='border-bottom'><div class='d-flex w-100 justify-content-between'><h5 class='mb-1'>"+el[3]+"</h5><small class='valoreTipologia "+el[3]+"'>0</small><small class='perTipologia "+el[3]+"per'>0</small></div></div>" );
+      }
+    });
+    $( ".list-group" ).append("<div class='footerTot'><span class='fooTotale'>Totale</span><span class='foTot'>0</span><span class='foPer'>0</span></div>");
+    }
+    
+    function styleFeature(feature) {
+        var outlineWeight = 0.5, zIndex = 1;
+        if (feature.getProperty('state') === 'hover') {
+          outlineWeight = zIndex = 2;
+        }
+        return {
+          strokeWeight: outlineWeight,
+          strokeColor: '#000',
+          zIndex: zIndex,
+          fillColor: '#fff',
+          fillOpacity: 0.7
+        };
+    }
 
-      var Veneto = [provVE, provTV, provPD, provVR, provVI, provBL, provRO];
+    /** Loads the state boundary polygons from a GeoJSON source. */
+    function loadMapShapes() {
+        // load US state outline polygons from a GeoJson file
+        map.data.addGeoJson(dataGeo, { idPropertyName: 'NOME_REG' });
+        map.data.setStyle(styleFeature);
+    }
+
+      
       Number.prototype.toRad = function() {
          return this * Math.PI / 180;
       }
@@ -84,6 +130,44 @@
           document.getElementById('maptest'),
           mapOptions
       );
+      // state polygons only need to be loaded once, do them now
+      loadMapShapes();
+     
+        // set up the style rules and events for google.maps.Data
+     
+      map.data.addListener('mouseover', mouseInToRegion);
+      map.data.addListener('mouseout', mouseOutOfRegion);
+      map.data.addListener('click', mouseclick);
+
+      function mouseInToRegion(e) {
+        // set the hover state so the setStyle function can change the border
+        e.feature.setProperty('state', 'hover');
+      }
+      function mouseOutOfRegion(e) {
+        // reset the hover state, returning the border to normal
+        e.feature.setProperty('state', 'normal');
+      }
+      function mouseclick (e) {
+        REGIONE = e.feature.j;
+        if (e.feature.j === "Veneto") {
+          REGIONE = Veneto;
+        };
+        if (e.feature.j === "Emilia-Romagna") {
+          REGIONE = Emilia;
+        };
+        if (e.feature.j === "Friuli Venezia Giulia") {
+          REGIONE = Friuli;
+        };
+         ElaboraLegenda();
+        RegioneSelezionata = true;
+        if (LastRegion != null) {
+          map.data.overrideStyle(LastRegion.feature, {fillOpacity: 0.7});
+
+        }
+        map.data.overrideStyle(e.feature, {fillOpacity: 0.1});
+        createMarker();
+        LastRegion = e;
+      }
 
       var marker1 = new google.maps.Marker({
           map: map, 
@@ -97,6 +181,7 @@
         fillOpacity: 0.35,
         strokeWeight: 0,
         editable: true,
+
         });
 
       // Add an event listener on the rectangle.
@@ -104,35 +189,62 @@
         
         // Define an info window on the map.
         infoWindow = new google.maps.InfoWindow();
-
+        infoWindowG = new google.maps.InfoWindow();
         /** @this {google.maps.Rectangle} */
       function showNewRect(event) {
         var ne = circleS.getBounds().getNorthEast() ;
         var mainText = document.getElementById("mainText");
 
-        var totale = 0;
-        var arrayLength = Veneto.length;
+        var dieciT = 0;
+        var dieciG = 0;
+        var arrayLength = REGIONE.length;
+        uniqueNames.forEach(function(valore) {
+                    $("."+valore).text("0");
+                });
+       
+        var TotRegioneRaggio = 0;
+        $(".TotaleRegione").text("Totale regione: " + TotaleRegione.toLocaleString());
+        $(".Raggio").text("Raggio: " + ((circleS.getRadius())/1000).toFixed(1) + ' Km');
         for (var i=0; i < arrayLength; i++) {
-          var comune = Veneto[i];
-         for (var city in comune) {
+         
           // Add the circle for this city to the map.
-          var b = comune[city].center;
+          var b = REGIONE[i][1];
           var a = new google.maps.LatLng(parseFloat(b.lat), parseFloat(b.lng));
+          
 
           if (google.maps.geometry.spherical.computeDistanceBetween(a, circleS.getCenter()) <= (circleS.getRadius())) {
-                console.log(city + '=> is in searchArea');
-                totale = totale + Number(comune[city].population);
+                console.log(REGIONE[i] + '=> is in searchArea');
+                uniqueNames.forEach(function(valore) {
+                  if (REGIONE[i][3] === valore) {
+                    var number = Number($("."+valore).text()) + Number(REGIONE[i][2]);
+                    var percent = (number/TotaleRegione )* 100;
+                    TotRegioneRaggio = TotRegioneRaggio + Number(REGIONE[i][2]);
+                    $("."+valore).text(number);
+                    $("."+valore+"per").text(percent.toLocaleString("it", { maximumFractionDigits: 1}));
+                  }
+                });
+                
             } 
-          }  
+           
         } 
-        var contentString = '<b>Totale</b><br>' +
-        'Raggio: ' + Math.round(circleS.getRadius())/1000 + '<br>' +
-            'Ingressi: ' + totale;
+
+        $(".foTot").text(TotRegioneRaggio.toLocaleString());
+        var TotRegioneRaggioPer = (TotRegioneRaggio/TotaleRegione)*100;
+        $(".foPer").text(TotRegioneRaggioPer.toLocaleString("it", { maximumFractionDigits: 1}));
+        var contentString = '<b>Totale 10T</b><br>' +
+        'Raggio: ' + ((circleS.getRadius())/1000).toFixed(1) + ' Km <br>' +
+            'Ingressi: ' + dieciT;
+        var contentStringG = '<b>Totale 10G</b><br>' +
+            'Ingressi: ' + dieciG;
 
         // Set the info window's content and position.
         infoWindow.setContent(contentString);
-        infoWindow.setPosition(CaVendramin.destinationPoint(0, Number(mainText.value)));
+        infoWindow.setPosition(CaVendramin.destinationPoint(0, Number(((circleS.getRadius())/1000).toFixed(1))));
         infoWindow.open(map);
+
+        infoWindowG.setContent(contentStringG);
+        infoWindowG.setPosition(CaVendramin.destinationPoint(45, Number(((circleS.getRadius())/1000).toFixed(1))));
+        infoWindowG.open(map);
       }
 
        var circle = new google.maps.Circle({
@@ -175,141 +287,87 @@
         strokeWeight: 0,
         });
 
-       function hideFour() {
-  circle.setMap(null);
-  circle2.setMap(null);
-  circle3.setMap(null);
-  circle4.setMap(null);
-  circle5.setMap(null);
-  circleS.setMap(map);
-  circleS.bindTo('center', marker1, 'position');
-  play();
-}
+      function hideFour() {
+        if (!RegioneSelezionata) {
+          window.alert("Clicca prima su una regione!");  
+          return;
+        };
+        circle.setMap(null);
+        circle2.setMap(null);
+        circle3.setMap(null);
+        circle4.setMap(null);
+        circle5.setMap(null);
+        circleS.setMap(map);
+        circleS.bindTo('center', marker1, 'position');
+        play();
+      }
 
-function hideSingle() {
-  circle.setMap(map);
-  circle2.setMap(map);
-  circle3.setMap(map);
-  circle4.setMap(map);
-  circle5.setMap(map);
-  circle.bindTo('center', marker1, 'position');
-  circle2.bindTo('center', marker1, 'position');
-  circle3.bindTo('center', marker1, 'position');
-  circle4.bindTo('center', marker1, 'position');
-  circle5.bindTo('center', marker1, 'position');
-  circleS.setMap(null);
-  playS();
-}
+      function hideSingle() {
+        if (!RegioneSelezionata) {
+          window.alert("Clicca prima su una regione!");  
+          return;
+        };
+        circle.setMap(map);
+        circle2.setMap(map);
+        circle3.setMap(map);
+        circle4.setMap(map);
+        circle5.setMap(map);
+        circle.bindTo('center', marker1, 'position');
+        circle2.bindTo('center', marker1, 'position');
+        circle3.bindTo('center', marker1, 'position');
+        circle4.bindTo('center', marker1, 'position');
+        circle5.bindTo('center', marker1, 'position');
+        circleS.setMap(null);
+        playS();
+      }
      
+   
 
-
+    function createMarker() {
   // Construct the circle for each value in citymap.
         // Note: We scale the area of the circle based on the population.
-        for (var city in citymap) {
+        citybefore = '';
+        sum = 0;
+        for (i = 0; i < REGIONE.length; i++) {
           // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: citymap[city].center,
-            radius: Math.sqrt(citymap[city].population) * 500
-          });
-        }
+          if (i + 1 < REGIONE.length) {
+            if (REGIONE[i][0] == REGIONE[i + 1][0]) {
+                sum = sum + REGIONE[i][2];
+            } else {
+              sum = sum + REGIONE[i][2];
+               var cityCircle = new google.maps.Circle({
+               strokeColor: '#FF0000',
+               strokeOpacity: 0.8,
+                strokeWeight: 1,
+                fillColor: '#2058FF',
+                fillOpacity: 0.35,
+                map: map,
+                center: REGIONE[i][1],
+                radius: Math.sqrt(sum) * 50
+               });
 
-        for (var city in provVE) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
+        /*      var marker = new google.maps.Marker({
+                position: VenetoData[i][1],
+                label: sum.toString(),
+                map: map
+                });*/
+               sum = 0;
+            }
+          } else {
+            sum = sum + REGIONE[i][2];
+            var cityCircle = new google.maps.Circle({
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 1,
             fillColor: '#2058FF',
             fillOpacity: 0.35,
             map: map,
-            center: provVE[city].center,
-            radius: Math.sqrt(provVE[city].population) * 500
+            center: REGIONE[i][1],
+            radius: Math.sqrt(sum ) * 50
           });
+      }
         }
-        for (var city in provTV) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: provTV[city].center,
-            radius: Math.sqrt(provTV[city].population) * 500
-          });
-        }
-      for (var city in provPD) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: provPD[city].center,
-            radius: Math.sqrt(provPD[city].population) * 500
-          });
-        }
-        for (var city in provVR) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: provVR[city].center,
-            radius: Math.sqrt(provVR[city].population) * 500
-          });
-        }
-        for (var city in provVI) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: provVI[city].center,
-            radius: Math.sqrt(provVI[city].population) * 500
-          });
-        }
-        for (var city in provBL) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: provBL[city].center,
-            radius: Math.sqrt(provBL[city].population) * 500
-          });
-        }
-        for (var city in provRO) {
-          // Add the circle for this city to the map.
-          var cityCircle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 1,
-            fillColor: '#2058FF',
-            fillOpacity: 0.35,
-            map: map,
-            center: provRO[city].center,
-            radius: Math.sqrt(provRO[city].population) * 500
-          });
-        }
+ };
 
         function play(){
           var mainText = document.getElementById("mainText");
@@ -334,6 +392,10 @@ function hideSingle() {
 
    </script>
    <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+   <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 
 </body>
 </html>
