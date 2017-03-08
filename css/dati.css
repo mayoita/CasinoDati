@@ -1,0 +1,24 @@
+.nicebox {
+    position: absolute;
+    text-align: center;
+    font-family: "Roboto", "Arial", sans-serif;
+    font-size: 13px;
+    z-index: 5;
+    box-shadow: 0 4px 6px -4px #333;
+    padding: 5px 10px;
+    background: rgb(255,255,255);
+    background: linear-gradient(to bottom,rgba(255,255,255,1) 0%,rgba(245,245,245,1) 100%);
+    border: rgb(229, 229, 229) 1px solid;
+}
+
+.list-group{
+        position: absolute;
+    z-index: 5;
+    top: 100px;
+    left: 20px;
+    background: white;
+    padding: 15px;
+} 
+.d-flex h5, .d-flex small{
+    padding-right: 20px;
+}

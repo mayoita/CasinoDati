@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfL1j_9u08QuliNtt-zij9zc8htgwtvpY"></script>
-<!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+<!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  </head>
+    <link href="css/dati.css" rel="stylesheet">
      <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -17,7 +23,7 @@
 <body>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
+
 <div><wpt lat="45.442989" lon="12.329876"></div>
 <div class="container-fluid">
     <div class="row">
@@ -30,10 +36,37 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-12" id="maptest" style="width:100%;height:100%;"></div>
+    <div class="list-group">
+ 
+    </div>
+
+    <div class="col-md-12" id="maptest" style="width:100%;height:100%;"></div>
    </div>
   </div>
+
    <script>    
+
+   $(function(){
+
+$('#data-box').click(function(){
+
+$('.Mike').html("any thing here");
+
+});
+
+});
+  
+
+   var names = ["Mike","Matt","Nancy","Adam","Jenny","Nancy","Carl"];
+  var uniqueNames = [];
+    $.each(names, function(i, el){
+       if($.inArray(el, uniqueNames) === -1){
+        uniqueNames.push(el);
+        $( ".list-group" ).append( "<div class='d-flex w-100 justify-content-between'><h5 class='mb-1'>"+el+"</h5><small>3 days ago</small><small>due</small></div>" );
+      }
+
+    });
+
 
     var citymap = {
         roma: {
@@ -862,5 +895,9 @@ VillanovaMarchesana: {center: {lat:44.9932962,lng: 11.9657962},population: 10},
         }
    </script>
    <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+   <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 </body>
 </html>
